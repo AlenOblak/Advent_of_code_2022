@@ -4,49 +4,36 @@ $lines = file('day7_input.txt', FILE_IGNORE_NEW_LINES);
 
 $dir = array();
 
-// part 1
+$curent_dir = array();
 foreach($lines as $line) {
-	if(substr($line, 0, 1) == '$') {
-		if($line == "$ cd /") {
-			$curent_dir = "/";
-			$dir[$curent_dir] = 0;
-		} elseif($line == "$ cd ..") {
-			$curent_dir = substr($curent_dir, 0, strrpos($curent_dir, '-'));
-		} elseif(substr($line, 0, 4) == "$ cd") {
-			$curent_dir = $curent_dir.'-'.substr($line, 5);
+	$command = explode(' ', $line);
+	if($command[1] == 'cd') {
+		if($command[2] == '..') {
+			array_pop($curent_dir);
+		} else {
+			array_push($curent_dir, $command[2]);
+			$dir[implode('-', $curent_dir)] = 0;
 		}
-	} elseif(substr($line, 0, 3) == 'dir') {
-		$dir[$curent_dir.'-'.substr($line, 4)] = 0;
+	} elseif($command[1] == 'ls') {
+	} elseif($command[0] == 'dir') {
 	} else {
 		list($s, $f) = sscanf($line, "%d %s");
-		$dir[$curent_dir] += $s;
+		for($i = 1; $i <= count($curent_dir); $i++)
+			$dir[implode('-', array_slice($curent_dir, 0, $i))] += $s;
 	}
 }
 
-$dir2 = array();
-foreach($dir as $d1 => $s1) {
-	$dir2[$d1] = 0;
-	foreach($dir as $d2 => $s2)
-		if($d1 == substr($d2, 0, strlen($d1)))
-			$dir2[$d1] += $s2;
-}
-
 $sum = 0;
-foreach($dir2 as $d)
+$free = 30000000 - (70000000 - $dir['/']);
+$min = PHP_INT_MAX;
+foreach($dir as $d) {
 	if($d <= 100000)
 		$sum += $d;
+	if($d > $free)
+		$min = min($min, $d);
+}
+
 echo $sum."\n";
-
-// part 2
-$total = 70000000;
-$unused = 30000000;
-$used = $dir2['/'];
-$free = $unused - ($total - $used);
-
-$min = PHP_INT_MAX;
-foreach($dir2 as $d)
-	if($d < $min && $d > $free)
-		$min = $d;
 echo $min."\n";
 
 ?>
